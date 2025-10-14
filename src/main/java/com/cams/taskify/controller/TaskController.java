@@ -4,6 +4,7 @@ import com.cams.taskify.DTO.Task.CreateTaskDTO;
 import com.cams.taskify.DTO.Task.PatchTaskDTO;
 import com.cams.taskify.DTO.Task.TaskDTO;
 import com.cams.taskify.response.PaginatedResponse;
+import com.cams.taskify.response.TaskListResponse;
 import com.cams.taskify.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping(TASKS_API_BASE_URL)
-    public PaginatedResponse<TaskDTO>  getTasks(Pageable pageable) {
+    public PaginatedResponse<TaskListResponse>  getTasks(Pageable pageable) {
         return taskService.getTasks(pageable);
     }
 

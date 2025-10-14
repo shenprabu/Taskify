@@ -1,6 +1,6 @@
 package com.cams.taskify.DTO.Task;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateTaskDTO {
-    @NotNull
+    @NotBlank
     private String title;
 
     private String description;

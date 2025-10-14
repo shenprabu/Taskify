@@ -4,6 +4,7 @@ import com.cams.taskify.DTO.Employee.CreateEmployeeDTO;
 import com.cams.taskify.DTO.Employee.EmployeeDTO;
 import com.cams.taskify.DTO.Employee.PatchEmployeeDTO;
 import com.cams.taskify.response.PaginatedResponse;
+import com.cams.taskify.response.TaskListResponse;
 import com.cams.taskify.service.EmployeeService;
 
 import lombok.RequiredArgsConstructor;
@@ -11,8 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-import static com.cams.taskify.constants.RouteConstants.EMPLOYEES_API_BASE_URL;
-import static com.cams.taskify.constants.RouteConstants.EMPLOYEES_API_ID_URL;
+import java.util.List;
+
+import static com.cams.taskify.constants.RouteConstants.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     @GetMapping(EMPLOYEES_API_BASE_URL)
-    public PaginatedResponse<EmployeeDTO> getEmployees(Pageable pageable) {
+    public PaginatedResponse<List<EmployeeDTO>> getEmployees(Pageable pageable) {
         return employeeService.getEmployees(pageable);
     }
 
@@ -38,6 +40,11 @@ public class EmployeeController {
     @PatchMapping(EMPLOYEES_API_ID_URL)
     public EmployeeDTO updateEmployee(@PathVariable long id, @Valid @RequestBody PatchEmployeeDTO patchEmployeeDTO) {
         return employeeService.updateEmployee(id, patchEmployeeDTO);
+    }
+
+    @GetMapping(EMPLOYEES_API_TASKS_URL)
+    public PaginatedResponse<TaskListResponse> getTasksForEmployee(@PathVariable long id, Pageable pageable) {
+        return employeeService.getTasksForEmployee(id, pageable);
     }
 
 }
