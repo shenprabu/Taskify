@@ -1,5 +1,6 @@
 package com.cams.taskify.exception;
 
+import com.cams.taskify.constants.TaskStatus;
 import com.cams.taskify.response.ErrorResponse;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -10,7 +11,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,6 +39,26 @@ public class GlobalExceptionHandler {
                 "Validation Failed",
                 "Invalid input parameters",
                 errors
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle input type mismatch errors
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentTypeMismatchException ex) {
+        String details = null;
+        if(ex.getMessage().contains("Method parameter 'status'")) {
+            String validStatuses = Arrays.stream(TaskStatus.values())
+                    .map(Enum::name)
+                    .collect(Collectors.joining(", "));
+            details = "Status value should be in [" + validStatuses + "]";
+        }
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Failed",
+                "Invalid input parameters",
+                List.of(details != null ? details : ex.getMessage())
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -67,7 +90,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    // Handles unknown/malformed input field error
+    // Handles unknown/malformed input field errors
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         Throwable cause = ex.getCause();

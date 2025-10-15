@@ -4,6 +4,7 @@ import com.cams.taskify.DTO.Employee.CreateEmployeeDTO;
 import com.cams.taskify.DTO.Employee.EmployeeDTO;
 import com.cams.taskify.DTO.Employee.PatchEmployeeDTO;
 import com.cams.taskify.DTO.Task.TaskDTO;
+import com.cams.taskify.constants.TaskStatus;
 import com.cams.taskify.entity.Employee;
 import com.cams.taskify.entity.Task;
 import com.cams.taskify.exception.ResourceNotFoundException;
@@ -61,9 +62,14 @@ public class EmployeeService {
         return modelMapper.map(saved, EmployeeDTO.class);
     }
 
-    public PaginatedResponse<TaskListResponse> getTasksForEmployee(long id, Pageable pageable) {
-        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Employee", id));
-        Page<Task> taskPage = taskRepository.findByAssignedTo(employee.getId(), pageable);
+    public PaginatedResponse<TaskListResponse> getTasksForEmployee(long empId, TaskStatus status, Pageable pageable) {
+        Employee employee = employeeRepository.findById(empId).orElseThrow(() -> new ResourceNotFoundException("Employee", empId));
+        Page<Task> taskPage;
+        if(status != null) {
+            taskPage = taskRepository.findByAssignedToAndStatus(empId, status, pageable);
+        } else {
+            taskPage = taskRepository.findByAssignedTo(empId, pageable);
+        }
 
         List<TaskDTO> tasks = taskPage.stream().map(task -> modelMapper.map(task, TaskDTO.class)).toList();
         List<EmployeeDTO> employees = List.of(modelMapper.map(employee, EmployeeDTO.class));

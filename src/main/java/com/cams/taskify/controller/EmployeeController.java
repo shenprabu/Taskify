@@ -3,6 +3,7 @@ package com.cams.taskify.controller;
 import com.cams.taskify.DTO.Employee.CreateEmployeeDTO;
 import com.cams.taskify.DTO.Employee.EmployeeDTO;
 import com.cams.taskify.DTO.Employee.PatchEmployeeDTO;
+import com.cams.taskify.constants.TaskStatus;
 import com.cams.taskify.response.PaginatedResponse;
 import com.cams.taskify.response.TaskListResponse;
 import com.cams.taskify.service.EmployeeService;
@@ -43,8 +44,8 @@ public class EmployeeController {
     }
 
     @GetMapping(EMPLOYEES_API_TASKS_URL)
-    public PaginatedResponse<TaskListResponse> getTasksForEmployee(@PathVariable long id, Pageable pageable) {
-        return employeeService.getTasksForEmployee(id, pageable);
+    public PaginatedResponse<TaskListResponse> getTasksForEmployee(@PathVariable long id, @RequestParam(required = false) TaskStatus status, Pageable pageable) {
+        return employeeService.getTasksForEmployee(id, status, pageable);
     }
 
 }
