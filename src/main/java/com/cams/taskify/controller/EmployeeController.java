@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.cams.taskify.constants.RouteConstants.*;
 
@@ -48,4 +49,8 @@ public class EmployeeController {
         return employeeService.getTasksForEmployee(id, status, pageable);
     }
 
+    @GetMapping(EMPLOYEES_API_STATS_URL)
+    public Map<String, Object> getEmployeeTaskStats(@PathVariable long id) {
+        return employeeService.getEmployeeTaskStats(id);
+    }
 }

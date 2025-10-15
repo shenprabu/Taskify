@@ -19,7 +19,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -81,5 +84,24 @@ public class EmployeeService {
                 .totalRecords(taskPage.getTotalPages())
                 .totalPages(taskPage.getTotalPages())
                 .build();
+    }
+
+    public Map<String, Object> getEmployeeTaskStats(long empId) {
+        Employee employee = employeeRepository.findById(empId).orElseThrow(() -> new ResourceNotFoundException("Employee", empId));
+        List<Task> tasks = taskRepository.findByAssignedTo(empId);
+
+        Map<TaskStatus, Long> counts = tasks.stream()
+                .collect(Collectors.groupingBy(Task::getStatus, Collectors.counting()));
+
+        Map<String, Object> results = new HashMap<>();
+        results.put("id",  employee.getId());
+        results.put("name",  employee.getName());
+        results.put("email",  employee.getEmail());
+
+        Map<String, Long> stats = new HashMap<>();
+        counts.forEach((status, count) -> stats.put(status.name(),  count));
+        results.put("stats",  stats);
+
+        return results;
     }
 }
