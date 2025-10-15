@@ -16,5 +16,5 @@ public class CreateTaskDTO {
 
     private String description;
     private String status;
-    private long assignedTo;
+    private Long assignedTo;
 }

@@ -2,7 +2,7 @@ package com.cams.taskify.controller;
 
 import com.cams.taskify.DTO.Task.CreateTaskDTO;
 import com.cams.taskify.DTO.Task.PatchTaskDTO;
-import com.cams.taskify.DTO.Task.TaskDTO;
+import com.cams.taskify.DTO.Task.TaskDetailsDTO;
 import com.cams.taskify.response.PaginatedResponse;
 import com.cams.taskify.response.TaskListResponse;
 import com.cams.taskify.service.TaskService;
@@ -26,17 +26,17 @@ public class TaskController {
     }
 
     @GetMapping(TASKS_API_ID_URL)
-    public TaskDTO getTask(@PathVariable long id) {
+    public TaskDetailsDTO getTask(@PathVariable long id) {
         return taskService.getTask(id);
     }
 
     @PostMapping(TASKS_API_BASE_URL)
-    public TaskDTO createTask(@Valid @RequestBody CreateTaskDTO createTaskDTO) {
+    public TaskDetailsDTO createTask(@Valid @RequestBody CreateTaskDTO createTaskDTO) {
         return taskService.createTask(createTaskDTO);
     }
 
     @PatchMapping(TASKS_API_ID_URL)
-    public TaskDTO updateTask(@PathVariable long id, @Valid @RequestBody PatchTaskDTO patchTaskDTO) {
+    public TaskDetailsDTO updateTask(@PathVariable long id, @Valid @RequestBody PatchTaskDTO patchTaskDTO) {
         return taskService.updateTask(id, patchTaskDTO);
     }
 }

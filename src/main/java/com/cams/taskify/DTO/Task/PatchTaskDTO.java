@@ -13,5 +13,5 @@ public class PatchTaskDTO {
     private String title;
     private String description;
     private String status;
-    private long assignedTo;
+    private Long assignedTo;
 }
