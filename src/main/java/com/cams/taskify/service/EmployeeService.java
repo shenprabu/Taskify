@@ -3,105 +3,27 @@ package com.cams.taskify.service;
 import com.cams.taskify.DTO.Employee.CreateEmployeeDTO;
 import com.cams.taskify.DTO.Employee.EmployeeDTO;
 import com.cams.taskify.DTO.Employee.PatchEmployeeDTO;
-import com.cams.taskify.DTO.Task.TaskDTO;
 import com.cams.taskify.constants.TaskStatus;
-import com.cams.taskify.entity.Employee;
-import com.cams.taskify.entity.Task;
-import com.cams.taskify.exception.ResourceNotFoundException;
-import com.cams.taskify.repository.EmployeeRepository;
-import com.cams.taskify.repository.TaskRepository;
 import com.cams.taskify.response.PaginatedResponse;
-
 import com.cams.taskify.response.TaskListResponse;
-import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-@Service
-@RequiredArgsConstructor
-public class EmployeeService {
+public interface EmployeeService {
 
-    private final EmployeeRepository employeeRepository;
-    private final ModelMapper modelMapper;
-    private final TaskRepository taskRepository;
+    PaginatedResponse<List<EmployeeDTO>> getEmployees(Pageable pageable);
 
-    public PaginatedResponse<List<EmployeeDTO>> getEmployees(Pageable pageable) {
-        Page<Employee> employeesPage = employeeRepository.findAll(pageable);
+    EmployeeDTO getEmployeeById(long id);
 
-        return PaginatedResponse.<List<EmployeeDTO>>builder()
-                .data(employeesPage.stream().map(employee -> modelMapper.map(employee, EmployeeDTO.class)).toList())
-                .count(employeesPage.getNumberOfElements())
-                .page(employeesPage.getNumber())
-                .totalRecords(employeesPage.getTotalPages())
-                .totalPages(employeesPage.getTotalPages())
-                .build();
-    }
+    EmployeeDTO createEmployee(CreateEmployeeDTO createEmployeeDTO);
 
-    public EmployeeDTO getEmployeeById(long id) {
-        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Employee", id));
-        return modelMapper.map(employee, EmployeeDTO.class);
-    }
+    EmployeeDTO updateEmployee(long id, PatchEmployeeDTO patchEmployeeDTO);
 
-    public EmployeeDTO createEmployee(CreateEmployeeDTO createEmployeeDTO) {
-        Employee employee = modelMapper.map(createEmployeeDTO, Employee.class);
-        return modelMapper.map(employeeRepository.save(employee), EmployeeDTO.class);
-    }
+    PaginatedResponse<TaskListResponse> getTasksForEmployee(long empId, TaskStatus status, Pageable pageable);
 
-    public EmployeeDTO updateEmployee(long id, PatchEmployeeDTO patchEmployeeDTO) {
-        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Employee", id));
+    Map<String, Object> getEmployeeTaskStats(long empId);
 
-        // Patch ignores null updates
-        modelMapper.getConfiguration().setSkipNullEnabled(true);
-        modelMapper.map(patchEmployeeDTO, employee);
-
-        Employee saved = employeeRepository.save(employee);
-        return modelMapper.map(saved, EmployeeDTO.class);
-    }
-
-    public PaginatedResponse<TaskListResponse> getTasksForEmployee(long empId, TaskStatus status, Pageable pageable) {
-        Employee employee = employeeRepository.findById(empId).orElseThrow(() -> new ResourceNotFoundException("Employee", empId));
-        Page<Task> taskPage;
-        if(status != null) {
-            taskPage = taskRepository.findByAssignedToAndStatus(empId, status, pageable);
-        } else {
-            taskPage = taskRepository.findByAssignedTo(empId, pageable);
-        }
-
-        List<TaskDTO> tasks = taskPage.stream().map(task -> modelMapper.map(task, TaskDTO.class)).toList();
-        List<EmployeeDTO> employees = List.of(modelMapper.map(employee, EmployeeDTO.class));
-
-        return PaginatedResponse.<TaskListResponse>builder()
-                .data(new TaskListResponse(tasks, employees))
-                .count(taskPage.getNumberOfElements())
-                .page(taskPage.getNumber())
-                .totalRecords(taskPage.getTotalPages())
-                .totalPages(taskPage.getTotalPages())
-                .build();
-    }
-
-    public Map<String, Object> getEmployeeTaskStats(long empId) {
-        Employee employee = employeeRepository.findById(empId).orElseThrow(() -> new ResourceNotFoundException("Employee", empId));
-        List<Task> tasks = taskRepository.findByAssignedTo(empId);
-
-        Map<TaskStatus, Long> counts = tasks.stream()
-                .collect(Collectors.groupingBy(Task::getStatus, Collectors.counting()));
-
-        Map<String, Object> results = new HashMap<>();
-        results.put("id",  employee.getId());
-        results.put("name",  employee.getName());
-        results.put("email",  employee.getEmail());
-
-        Map<String, Long> stats = new HashMap<>();
-        counts.forEach((status, count) -> stats.put(status.name(),  count));
-        results.put("stats",  stats);
-
-        return results;
-    }
 }
