@@ -40,7 +40,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .data(employeesPage.stream().map(employee -> modelMapper.map(employee, EmployeeDTO.class)).toList())
                 .count(employeesPage.getNumberOfElements())
                 .page(employeesPage.getNumber())
-                .totalRecords(employeesPage.getTotalPages())
+                .totalRecords(employeesPage.getTotalElements())
                 .totalPages(employeesPage.getTotalPages())
                 .build();
     }

@@ -11,6 +11,6 @@ public class PaginatedResponse<T> {
     private T data;
     private int count;
     private int page;
-    private int totalRecords;
+    private long totalRecords;
     private int totalPages;
 }

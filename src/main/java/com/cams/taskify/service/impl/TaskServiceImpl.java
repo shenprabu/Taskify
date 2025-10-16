@@ -45,7 +45,7 @@ public class TaskServiceImpl implements TaskService {
                 .build();
     }
 
-    public TaskListResponse getTasksWithEmployees(Page<Task> tasksPage) {
+    private TaskListResponse getTasksWithEmployees(Page<Task> tasksPage) {
 
         // Convert to TaskDTOs
         List<TaskDTO> taskDTOs = tasksPage.stream().map(task -> modelMapper.map(task, TaskDTO.class)).toList();
