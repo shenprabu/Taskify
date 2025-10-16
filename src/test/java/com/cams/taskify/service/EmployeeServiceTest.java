@@ -3,11 +3,14 @@ package com.cams.taskify.service;
 import com.cams.taskify.DTO.Employee.CreateEmployeeDTO;
 import com.cams.taskify.DTO.Employee.EmployeeDTO;
 import com.cams.taskify.DTO.Employee.PatchEmployeeDTO;
+import com.cams.taskify.constants.TaskStatus;
 import com.cams.taskify.entity.Employee;
+import com.cams.taskify.entity.Task;
 import com.cams.taskify.exception.ResourceNotFoundException;
 import com.cams.taskify.repository.EmployeeRepository;
 import com.cams.taskify.repository.TaskRepository;
 import com.cams.taskify.response.PaginatedResponse;
+import com.cams.taskify.response.TaskListResponse;
 import com.cams.taskify.service.impl.EmployeeServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -135,6 +139,91 @@ class EmployeeServiceTest {
 
         EmployeeDTO updated = employeeService.updateEmployee(1L, patchEmployeeDTO);
         assertEquals("John", updated.getName());
+    }
 
+    @Test
+    void testGetTasksForEmployee() {
+        Pageable pageable = PageRequest.of(0, 2);
+
+        Employee employee = new Employee();
+        employee.setId(1L);
+        employee.setName("Jane");
+        employee.setEmail("jane@cams.com");
+
+        Task task1 = new Task();
+        task1.setId(1L);
+        task1.setTitle("Task1");
+        task1.setAssignedTo(1L);
+        task1.setStatus(TaskStatus.PENDING);
+
+        Task task2 = new Task();
+        task2.setId(2L);
+        task2.setTitle("Task2");
+        task2.setAssignedTo(1L);
+        task2.setStatus(TaskStatus.IN_PROGRESS);
+
+        List<Task> tasks = List.of(task1, task2);
+        Page<Task> taskPage = new PageImpl<>(tasks, pageable, tasks.size());
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(taskRepository.findByAssignedTo(1L, pageable)).thenReturn(taskPage);
+
+        // without status filter
+        PaginatedResponse<TaskListResponse> taskListResponse = employeeService.getTasksForEmployee(1L, null, pageable);
+
+        assertNotNull(taskListResponse);
+        assertEquals(1, taskListResponse.getTotalPages());
+        assertEquals(2, taskListResponse.getTotalRecords());
+        assertEquals(2, taskListResponse.getCount());
+        assertEquals(0, taskListResponse.getPage());
+        assertEquals("Task1", taskListResponse.getData().getTasks().get(0).getTitle());
+        assertEquals("Task2", taskListResponse.getData().getTasks().get(1).getTitle());
+        assertEquals("Jane", taskListResponse.getData().getEmployees().get(0).getName());
+
+        Page<Task> taskPageWithFilter = new PageImpl<>(List.of(task2), pageable, 1);
+        when(taskRepository.findByAssignedToAndStatus(1L, TaskStatus.IN_PROGRESS, pageable)).thenReturn(taskPageWithFilter);
+
+        // with status filter
+        PaginatedResponse<TaskListResponse> taskListResponseWithFilter = employeeService.getTasksForEmployee(1L, TaskStatus.IN_PROGRESS, pageable);
+
+        assertNotNull(taskListResponseWithFilter);
+        assertEquals(1, taskListResponseWithFilter.getTotalPages());
+        assertEquals(1, taskListResponseWithFilter.getTotalRecords());
+        assertEquals(1, taskListResponseWithFilter.getCount());
+        assertEquals(0, taskListResponseWithFilter.getPage());
+        assertEquals("Task2", taskListResponseWithFilter.getData().getTasks().get(0).getTitle());
+        assertEquals("Jane", taskListResponseWithFilter.getData().getEmployees().get(0).getName());
+    }
+
+    @Test
+    void testGetEmployeeTaskStats() {
+        Employee employee = new Employee();
+        employee.setId(1L);
+        employee.setName("John");
+        employee.setEmail("john@cams.com");
+
+        Task task1 = new Task();
+        task1.setId(1L);
+        task1.setTitle("Task1");
+        task1.setAssignedTo(1L);
+        task1.setStatus(TaskStatus.PENDING);
+
+        Task task2 = new Task();
+        task2.setId(2L);
+        task2.setTitle("Task2");
+        task2.setAssignedTo(1L);
+        task2.setStatus(TaskStatus.IN_PROGRESS);
+
+        List<Task> tasks = List.of(task1, task2);
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(taskRepository.findByAssignedTo(1L)).thenReturn(tasks);
+
+        Map<String, Object> statsResponse = employeeService.getEmployeeTaskStats(1L);
+
+        assertEquals("John", statsResponse.get("name"));
+        Map<String, Long> stats =  (Map<String, Long>) statsResponse.get("stats");
+        assertEquals(1L, stats.get(TaskStatus.PENDING.name()));
+        assertEquals(1L, stats.get(TaskStatus.IN_PROGRESS.name()));
     }
 }

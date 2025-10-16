@@ -82,7 +82,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .data(new TaskListResponse(tasks, employees))
                 .count(taskPage.getNumberOfElements())
                 .page(taskPage.getNumber())
-                .totalRecords(taskPage.getTotalPages())
+                .totalRecords(taskPage.getTotalElements())
                 .totalPages(taskPage.getTotalPages())
                 .build();
     }
